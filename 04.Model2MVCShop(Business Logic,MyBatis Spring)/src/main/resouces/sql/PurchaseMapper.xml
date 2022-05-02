@@ -98,6 +98,8 @@
 	</select>
 	
 	
+	
+	
 	<!-- SQL : INSERT ok
 	(prod_no, prod_name, prod_detail, manufacture_day, price, image_file, reg_date) -->
 	<insert id="addProduct" parameterType="product">
