@@ -36,6 +36,7 @@ public class ProductServiceTest {
 		System.out.println("sql add ¿Ï·á");
 		System.out.println(product);
 		productService.addProduct(product);	
+		
 		product = productService.getProduct(10066);
 		System.out.println(product);
 		

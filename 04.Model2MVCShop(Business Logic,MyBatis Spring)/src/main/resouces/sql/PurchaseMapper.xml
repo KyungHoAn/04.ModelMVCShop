@@ -44,7 +44,7 @@
 	
 	<insert id="addPurchase" parameterType="purchase">
 		INSERT 
-		INTO transaction(tran_no, prod_no, buyer_id, payment_option, receiver_name, receiver_phone, demailaddr, dlvy_request, tran_status_code, order_data, dlvy_date)
+		INTO transaction
 		VALUES (
 					seq_transaction_tran_no.NEXTVAL,
 					#{purchaseProd.prodNo:INTEGER},
@@ -60,9 +60,12 @@
 	</insert>
 	
 	<select id="findPurchase" parameterType="purchase" resultMap="purchaseSelectMap">
-		select
+	SELECT tran_no, buyer_id, receiver_name
+	FROM transaction
+	WHERE tran_no = #{value}
+<!-- 		select
 		t.TRAN_NO tranNo,
-		<!-- t.prod_no prodNo, -->
+		t.prod_no prodNo,
 		t.buyer_id buyer,
 		t.PAYMENT_OPTION paymentOption,
 		t.RECEIVER_NAME receiverName,
@@ -94,75 +97,30 @@
 				
 		from TRANSACTION t, PRODUCT p, USERS u
 		where t.prod_no = p.prod_no AND t.buyer_id = u.user_id
-		<if test="tranNo != null">AND t.TRAN_NO=#{tranNo}</if>
+		<if test="tranNo != null">AND t.TRAN_NO=#{tranNo}</if> -->
 	</select>
 	
-	
-	
-	
-	<!-- SQL : INSERT ok
-	(prod_no, prod_name, prod_detail, manufacture_day, price, image_file, reg_date) -->
-	<insert id="addProduct" parameterType="product">
-		INSERT
-		INTO product 
-		VALUES (seq_product_prod_no.NEXTVAL, #{prodName}, #{prodDetail:VARCHAR},
-				#{manuDate:VARCHAR}, #{price:NUMERIC}, #{fileName:VARCHAR}, SYSDATE)
-	</insert>
-	
-	<!--  SELECT ONE ok-->
-	<select id="getProduct" parameterType="int" resultMap ="productSelectMap">
-		SELECT
-		prod_no, prod_name, prod_detail, manufacture_day, price, image_file, reg_date
-		FROM product
-		WHERE prod_no = #{value} 
+	<select id = "getPurchaseList" parameterType="search" resultMap="purchaseSelectMap">
+		SELECT *
+		FROM (SELECT inner_table.*, ROWNUM AS row_seq
+				FROM ( SELECT t.prod_no, t.buyer_id, t.receiver_name, t.receiver_phone, t.tran_no, t.tran_status_code
+				FROM transaction t, product p, users u
+				WHERE t.prod_no = p.prod_no AND t.buyer_id = u.users_id
+				AND buyer_id = '${userId}' ) inner_table
+			WHERE row_seq BETWEEN #{startRowNum} AND #{endRowNum}
 	</select>
 	
-	<!--  SQL : UPDATE ok-->
-	<update id="updateProduct" parameterType="product">
-		UPDATE product
+	<select id = "updatePurchase" parameterType = "search" resultMap = "purchaseSelectMap">
+		UPDATE transaction
 		<set>
-			prod_name = #{prodName},
-			prod_detail = #{prodDetail},
-			manufacture_day = #{manuDate},
-			price = #{price},
-			image_file = #{fileName}
+			payment_option = #{paymentOption:CHAR},
+			receiver_name = #{receiverName},
+			receiver_phone = #{receiverPhone},
+			dlvy_addr = #{dlvyAddr:VARCHAR},
+			divy_request = #{dlvyRequest:VARCHAR},
+			divy_date = #{dlvyDate:VARCHAR}
 		</set>
-		WHERE prod_no = #{prodNo}
-	</update>
-	 
-	 <!-- SQL : select list -->
-	 <select id = "getProductList" parameterType="search" resultMap="productSelectMap">
-	 	SELECT *
-	 	FROM ( SELECT inner_table.*, ROWNUM AS row_seq 
-	 			FROM ( SELECT *	FROM product
-	 							<if test="searchCondition != null">
-									<where>
-										<if test="searchCondition == 0 and searchKeyword !='' ">
-	 										prod_no = #{searchKeyword}
-	 									</if>
-										    <if test="searchCondition == 1 and searchKeyword !='' ">
-	 										prod_name = '%${searchKeyword}%'
-	 									</if>
-	 								</where>
-	 							</if>
-	 							 ORDER BY prod_no ) inner_table
-	 							WHERE ROWNUM &lt;= #{endRowNum} )
-				WHERE row_seq BETWEEN #{startRowNum} AND #{endRowNum} 
-	 </select>
-	 
-	 <!-- SQL : SELECT ROW Count -->
-	 <select id = "getTotalCount" parameterType="search" resultType="int">
-	 		SELECT COUNT(*)
-	 		FROM( SELECT * from product
-	 		<if test="searchCondition != null">
-				<where>
-					<if test="searchCondition == 0 and searchKeyword !='' ">
-	 				prod_no = #{searchKeyword}
-	 				</if>
-				    <if test="searchCondition == 1 and searchKeyword !='' ">
-	 					prod_name = '%${searchKeyword}%'
-	 				</if>
-	 			</where>
-	 		</if> 	) countTable
-	 </select>
+		WHERE tran_no = #{tranNo}
+	</select>
+	
 </mapper>
