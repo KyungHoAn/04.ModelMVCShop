@@ -1,5 +1,8 @@
 package com.model2.mvc.purchase.test;
 
+import java.util.List;
+import java.util.Map;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -8,6 +11,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import com.model2.mvc.common.Search;
 import com.model2.mvc.service.domain.Product;
 import com.model2.mvc.service.domain.Purchase;
 import com.model2.mvc.service.domain.User;
@@ -42,6 +46,14 @@ public class PurchaseServiceTest {
 		purchase.setBuyer(user);
 		purchaseService.addPurchase(purchase);
 		System.out.println("sql add 완료");
+		
+		purchase = purchaseService.findPurchase(10000);
+		System.out.println(purchase);
+		
+		Assert.assertEquals("user01", purchase.getBuyer());
+		Assert.assertEquals("9090909", purchase.getReceiverPhone());
+		Assert.assertEquals("강남", purchase.getDivyAddr());
+		Assert.assertEquals("문", purchase.getDivyRequest());
 	}
 	
 	//ok
@@ -54,11 +66,61 @@ public class PurchaseServiceTest {
 		System.out.println("find 완료");
 	}
 	
-	@Test
+	//@Test
 	public void testUpdatePurchase() throws Exception{
-		Purchase purchase = purchaseService.findPurchase(10000);
+		Purchase purchase = purchaseService.findPurchase(10045);
 		Assert.assertNotNull(purchase);
 		
-		Assert.assertEquals("test01", purchase.getBuyer());
+		Assert.assertEquals("user01", purchase.getBuyer());
+		Assert.assertEquals("test01",purchase.getReceiverName());
+		
+		User user = new User();
+		Product product = new Product();
+//		Purchase purchase = new Purchase();
+		user.setUserId("user01");
+		
+		purchase.setBuyer(user);
+		
+		purchase.setReceiverName("testtest01");
+		
+		purchaseService.updatePurchase(purchase);
+		System.out.println("TestUpdate완료");
+		
+//		Purchase purchase  =new Purchase();
+//		purchase.setReceiverName("test");
+//		
+//		purchaseService.updatePurchase(purchase);
+		
 	}
+	
+	//@Test
+	public void testGetPurchaseListAll() throws Exception{
+		Search search = new Search();
+		search.setCurrentPage(1);
+		search.setPageSize(3);
+		Map<String,Object> map = purchaseService.getPurchaseList(search,"user01");
+		
+		List<Object> list = (List<Object>)map.get("list");
+		Assert.assertEquals(3, list.size());
+		
+		System.out.println(list);
+		
+		Integer totalCount = (Integer)map.get("totalCount");
+		System.out.println(totalCount);
+		
+		System.out.println("==================");
+		
+		search.setCurrentPage(1);
+		search.setPageSize(3);
+		search.setSearchCondition("0");
+		search.setSearchKeyword("");
+		
+		list = (List<Object>)map.get("list");
+		Assert.assertEquals(3, list.size());
+		System.out.println(list);
+		
+		totalCount = (Integer)map.get("totalCount");
+		System.out.println(totalCount);
+	}
+	
 }
